@@ -1,4 +1,5 @@
 from data_logger import log_data
+from kalman_filter import KalmanFilter
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
@@ -14,7 +15,7 @@ def generate_sensor_value():
 
 # Random fault injection
 def inject_fault(value):
-    if random.random() < 0.05:   # 5% chance of fault
+    if random.random() < 0.05:
         return random.choice([120, -10])
     return value
 
@@ -24,11 +25,17 @@ plt.ion()
 
 fig, ax = plt.subplots()
 
+# Initialize Kalman Filter
+kf = KalmanFilter()
+
 while True:
 
     sensor_value = generate_sensor_value()
 
     sensor_value = inject_fault(sensor_value)
+
+    # Apply Kalman Filter
+    filtered_value = kf.update(sensor_value)
 
     # Detect fault
     if sensor_value > 50 or sensor_value < 10:
@@ -36,10 +43,11 @@ while True:
     else:
         status = "NORMAL"
 
-    # Save data to CSV
+    # Save data
     log_data(sensor_value, status)
 
-    window.append(sensor_value)
+    # Store filtered value
+    window.append(filtered_value)
 
     raw_data = list(window)
 
@@ -49,11 +57,10 @@ while True:
 
         ax.clear()
 
-        ax.plot(raw_data, label="Raw Sensor Data")
+        ax.plot(raw_data, label="Kalman Filtered Data")
 
-        ax.plot(range(4, len(raw_data)), filtered_data, label="Filtered Data")
+        ax.plot(range(4, len(raw_data)), filtered_data, label="Moving Average")
 
-        # Fault detection markers
         fault_x = []
         fault_y = []
 
@@ -66,10 +73,13 @@ while True:
             ax.scatter(fault_x, fault_y, color='red', label="Fault Detected")
 
         ax.set_title("Real-Time Sensor Monitoring")
+
         ax.set_xlabel("Samples")
+
         ax.set_ylabel("Sensor Value")
 
         ax.legend()
+
         ax.grid(True)
 
         plt.pause(0.5)
