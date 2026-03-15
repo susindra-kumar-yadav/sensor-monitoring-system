@@ -157,3 +157,7 @@ Possible upgrades:
 ## Author
 
 Project developed as a **sensor signal processing simulation for embedded systems learning**.
+## Project Output
+
+![Sensor Monitoring](sensor_graph.png)
+![alt text](sensor_graph-1.png)
